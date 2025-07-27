@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LexiBot – Assistant Juridique IA</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 700px; margin: auto; background-color: #f9f9f9; }
+    h1, h2 { text-align: center; }
+    textarea { width: 100%; height: 100px; padding: 10px; font-size: 16px; }
+    button { padding: 10px 15px; font-size: 16px; margin-top: 10px; }
+    .response-section { background: #fff; border-left: 4px solid #4CAF50; margin-top: 20px; padding: 10px; border-radius: 5px; }
+    summary { font-weight: bold; cursor: pointer; }
+    details { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>⚖️ LexiBot</h1>
+  <h2>Assistant juridique IA spécialisé en droit français</h2>
+
+  <textarea id="question" placeholder="Ex: Mon employeur refuse de me payer..."></textarea>
+  <br />
+  <button onclick="askLexiBot()">Envoyer</button>
+
+  <div id="responseArea" class="response-section"></div>
+
+  <script>
+    async function askLexiBot() {
+      const question = document.getElementById("question").value.trim();
+      const responseArea = document.getElementById("responseArea");
+      if (!question) {
+        alert("Merci de poser une question.");
+        return;
+      }
+
+      responseArea.innerHTML = "<em>⏳ LexiBot réfléchit...</em>";
+
+      try {
+        const res = await fetch("https://lexintel-api.onrender.com/api", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+
+        const data = await res.json();
+
+        if (!data.answer) {
+          responseArea.innerHTML = "❌ Erreur : réponse vide.";
+          return;
+        }
+
+        const parsed = JSON.parse(data.answer);
+        let html = "";
+        for (const [titre, contenu] of Object.entries(parsed)) {
+          html += `<details><summary>➕ ${titre}</summary><div>${contenu}</div></details>`;
+        }
+
+        responseArea.innerHTML = html + "<p style='font-size:12px;color:#888;'>⚠️ Ceci est une réponse informative. Consulte un professionnel si nécessaire.</p>";
+      } catch (err) {
+        console.error(err);
+        responseArea.innerHTML = "<p style='color:red;'>❌ Erreur de connexion ou de réponse.<br>Réessaye plus tard.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
